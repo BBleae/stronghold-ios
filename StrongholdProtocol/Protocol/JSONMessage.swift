@@ -3,7 +3,7 @@ import Foundation
 /// A JSON value that can hold anything the game protocol sends.
 /// The web client uses plain JSON objects end to end; we mirror that with
 /// an enum so we can decode loosely now and type specific payloads later.
-indirect enum JSON: Equatable {
+indirect enum JSON: Equatable, Sendable {
     case null
     case bool(Bool)
     case int(Int64)

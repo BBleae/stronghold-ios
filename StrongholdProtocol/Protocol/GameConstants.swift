@@ -106,7 +106,7 @@ enum GameError: String, Decodable {
 }
 
 /// A server error frame.
-struct ServerError: Error, Equatable {
+struct ServerError: Error, Equatable, Sendable {
     let code: GameError?
     let rawCode: String
     let message: String
