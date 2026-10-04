@@ -115,6 +115,8 @@ struct BracketFrame: View {
 
 /// PrimaryButton — mint fill + dark text (hatch trim to be added with the
 /// battle screens; straight corners per design).
+/// PrimaryButton — mint fill + dark text + trailing diagonal hatch strip
+/// （对齐原版 .btn--primary）；禁用 = outline 灰（非实心灰块）。
 struct PrimaryButton: View {
     let title: String
     var isLoading = false
@@ -130,19 +132,33 @@ struct PrimaryButton: View {
                     .foregroundStyle(isDisabled ? Theme.textDisabled : Theme.void)
             }
             .frame(maxWidth: .infinity)
-            .frame(minHeight: 44)
-            .background(isDisabled ? Theme.textDisabled.opacity(0.3) : Theme.mint)
+            .frame(height: 52)
+            .background(isDisabled ? Color.clear : Theme.mint)
+            .overlay {
+                if isDisabled {
+                    Rectangle().strokeBorder(Theme.mintDim.opacity(0.6), lineWidth: 1)
+                }
+            }
+            .overlay(alignment: .trailing) {
+                if !isDisabled {
+                    HatchStripes()
+                        .frame(width: 9)
+                        .clipped()
+                }
+            }
         }
         .disabled(isDisabled)
         .accessibilityIdentifier("primary-button")
     }
 }
 
-/// GhostButton — transparent + 1px mintDim border + mint text.
+/// GhostButton — transparent + 1px mintDim border + mint text；
+/// 禁用 = 同样 outline，textDisabled 文字 + 暗化边框，不填灰。
 struct GhostButton: View {
     let title: String
     var systemImage: String?
     var isDisabled = false
+    var fullWidth = false
     let action: () -> Void
 
     var body: some View {
@@ -156,14 +172,49 @@ struct GhostButton: View {
             .font(.system(size: 15, weight: .medium))
             .foregroundStyle(isDisabled ? Theme.textDisabled : Theme.mint)
             .padding(.horizontal, 14)
-            .frame(minHeight: 44)
-            .background(isDisabled ? Theme.textDisabled.opacity(0.3) : Color.clear)
+            .frame(minWidth: fullWidth ? 0 : nil, maxWidth: fullWidth ? .infinity : nil)
+            .frame(height: 52)
             .overlay(Rectangle().strokeBorder(
-                isDisabled ? Theme.textDisabled.opacity(0.3) : Theme.mintDim,
+                isDisabled ? Theme.mintDim.opacity(0.5) : Theme.mintDim,
                 lineWidth: 1
             ))
         }
         .disabled(isDisabled)
+    }
+}
+
+/// 斜纹饰带 — diagonal hatch stripes，对齐原版 .btn--primary 的
+/// repeating-linear-gradient(-55deg, rgba(0,0,0,.16) 0 2px, transparent 2px 6px)。
+/// 叠在填充按钮的右端条带上（宽约 8-10pt）。
+struct HatchStripes: View {
+    var color: Color = Color.black.opacity(0.16)
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+            Path { path in
+                let angle = CGFloat(-55) * .pi / 180
+                let dx = cos(angle)
+                let dy = sin(angle)
+                let spacing: CGFloat = 6
+                let nx = -dy
+                let ny = dx
+                let reach = abs(w * nx) + abs(h * ny) + spacing * 2
+                let half = w + h
+                var d: CGFloat = -reach
+                while d <= reach {
+                    let cx = w / 2 + nx * d
+                    let cy = h / 2 + ny * d
+                    path.move(to: CGPoint(x: cx - dx * half, y: cy - dy * half))
+                    path.addLine(to: CGPoint(x: cx + dx * half, y: cy + dy * half))
+                    d += spacing
+                }
+            }
+            .stroke(color, style: StrokeStyle(lineWidth: 2, lineCap: .butt))
+            .clipped()
+        }
+        .allowsHitTesting(false)
     }
 }
 

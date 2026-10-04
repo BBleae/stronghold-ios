@@ -162,17 +162,22 @@ enum LobbyRoute: Hashable {
     case lobby(Deployment)
 }
 
-/// 深色战术主按钮样式（mint 填充 + 深色文字，直角）——用于非 PrimaryButton
-/// 组件但需要同样观感的 Button（如空态「添加部署」）。
+/// 深色战术主按钮样式（mint 填充 + 深色文字 + 右端斜纹饰带，直角、52pt）
+/// ——用于非 PrimaryButton 组件但需要同样观感的 Button（如空态「添加部署」）。
 struct BorderedProminentTacticalButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 17, weight: .semibold))
             .foregroundStyle(Theme.void)
             .frame(minWidth: 120)
-            .frame(minHeight: 44)
+            .frame(height: 52)
             .padding(.horizontal, 16)
             .background(Theme.mint.opacity(configuration.isPressed ? 0.8 : 1))
+            .overlay(alignment: .trailing) {
+                HatchStripes()
+                    .frame(width: 9)
+                    .clipped()
+            }
     }
 }
 

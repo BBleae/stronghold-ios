@@ -122,25 +122,38 @@ private struct RoomBody: View {
 
             Spacer()
 
-            // Ready / start
-            HStack(spacing: 12) {
-                let ready = mySeat?["ready"]?.boolValue ?? false
-                PrimaryButton(title: ready ? "已准备" : "准备就绪") {
-                    controller.setReady(!ready)
-                }
+            // Ready / start — 对齐原版 room-bar：底栏左边「干员调配」outline
+            // 占位 + 右边主按钮（均 52pt、同排等宽）。房主的开始即视为准备
+            //（server/lobby.js）；非房主同一位置做「准备就绪/已准备」切换。
+            VStack(spacing: 6) {
                 if isHost {
-                    VStack(spacing: 6) {
+                    HStack(spacing: 12) {
+                        GhostButton(title: "干员调配", isDisabled: true, fullWidth: true) {}
+                            .accessibilityIdentifier("loadout-button")
                         PrimaryButton(title: "开始模拟", isDisabled: !allReady) {
                             controller.startMatch()
                         }
-                        if !allReady {
-                            Text("还有队友未准备")
-                                .font(.footnote)
-                                .foregroundStyle(Theme.textSecondary)
-                        }
+                    }
+                    if !allReady {
+                        Text("还有队友未准备")
+                            .font(.footnote)
+                            .foregroundStyle(Theme.textSecondary)
                     }
                 } else {
-                    PrimaryButton(title: "等待房主开始", isDisabled: true) {}
+                    let ready = mySeat?["ready"]?.boolValue ?? false
+                    if ready {
+                        PrimaryButton(title: "已准备") {
+                            controller.setReady(false)
+                        }
+                        Text("等待房主开始")
+                            .font(.footnote)
+                            .foregroundStyle(Theme.textSecondary)
+                    } else {
+                        GhostButton(title: "准备就绪") {
+                            controller.setReady(true)
+                        }
+                        .accessibilityIdentifier("primary-button")
+                    }
                 }
             }
         }
