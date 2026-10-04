@@ -6,6 +6,7 @@ import SwiftUI
 struct LobbyView: View {
     let deployment: Deployment
 
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var controller: SessionController
     @State private var nickname: String = IdentityStore().lastName
     @State private var mode: String = "coop"
@@ -31,9 +32,10 @@ struct LobbyView: View {
         }
         .padding(16)
         .background(Theme.void)
-        .navigationTitle("选择模拟协议")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top, spacing: 12) {
+            navBar
+        }
         .navigationDestination(isPresented: $showRoom) {
             RoomView(controller: controller)
         }
@@ -41,8 +43,12 @@ struct LobbyView: View {
             if state != nil { showRoom = true }
         }
         .overlay(alignment: .top) {
-            if let toast = controller.toast {
-                Text(toast)
+            VStack(spacing: 4) {
+                if controller.isReconnecting {
+                    ReconnectBanner()
+                }
+                if let toast = controller.toast {
+                    Text(toast)
                     .font(.footnote)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
@@ -53,6 +59,31 @@ struct LobbyView: View {
                         try? await Task.sleep(for: .seconds(2))
                         controller.toast = nil
                     }
+                }
+            }
+        }
+    }
+
+    /// 自绘顶部导航：裸 chevron + 「返回」，无系统玻璃底（设计语言全程直角）。
+    private var navBar: some View {
+        ZStack {
+            Text("选择模拟协议")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(Theme.textPrimary)
+            HStack {
+                Button {
+                    dismiss()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 15, weight: .semibold))
+                        Text("返回")
+                            .font(.system(size: 15, weight: .medium))
+                    }
+                    .foregroundStyle(Theme.mint)
+                }
+                .buttonStyle(.plain)
+                Spacer()
             }
         }
     }
@@ -155,10 +186,9 @@ struct LobbyView: View {
                             .textInputAutocapitalization(.characters)
                             .disableAutocorrection(true)
                             .accessibilityIdentifier("room-key")
-                        GhostButton(title: "加入同盟") {
+                        GhostButton(title: "加入同盟", isDisabled: roomKey.count < 4) {
                             controller.joinRoom(code: roomKey)
                         }
-                        .disabled(roomKey.count < 4)
                     }
                 }
             }
@@ -179,14 +209,6 @@ struct LobbyView: View {
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(Theme.textPrimary)
             MonoLabel(tag)
-            if selected {
-                Text("已选定")
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .tracking(1.8)
-                    .foregroundStyle(Theme.mint)
-            } else {
-                MonoLabel(" ")
-            }
         }
         .frame(maxWidth: .infinity)
         .frame(minHeight: 88)
@@ -194,6 +216,16 @@ struct LobbyView: View {
         .overlay(Rectangle().strokeBorder(selected ? Theme.mint : Theme.mintDim, lineWidth: selected ? 1.5 : 1))
         .overlay {
             if selected { BracketFrame().padding(3) }
+        }
+        // 「已选定」角标：固定在卡内右上角、4pt 内距，不被边框裁切。
+        .overlay(alignment: .topTrailing) {
+            if selected {
+                Text("已选定")
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .tracking(1.8)
+                    .foregroundStyle(Theme.mint)
+                    .padding(4)
+            }
         }
     }
 }

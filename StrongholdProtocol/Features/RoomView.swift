@@ -4,6 +4,7 @@ import SwiftUI
 /// AI teammates, difficulty, start.
 struct RoomView: View {
     @ObservedObject var controller: SessionController
+    @State private var showingLeaveConfirm = false
 
     var body: some View {
         VStack(spacing: 16) {
@@ -18,26 +19,30 @@ struct RoomView: View {
         }
         .padding(16)
         .background(Theme.void)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    controller.leaveRoom()
-                } label: {
-                    Text("离开同盟")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Theme.danger)
-                }
+        .overlay(alignment: .top) {
+            if controller.isReconnecting {
+                ReconnectBanner()
             }
+        }
+        .toolbar(.hidden, for: .navigationBar)
+        .alert("确定离开同盟吗？", isPresented: $showingLeaveConfirm) {
+            Button("确认", role: .destructive) {
+                controller.leaveRoom()
+            }
+            Button("取消", role: .cancel) {}
         }
     }
 
     private var header: some View {
         HStack(spacing: 12) {
+            // 离开 = 红方钮（design.md S5），方形直角，不用系统胶囊。
+            DangerGhostButton(title: "离开同盟") {
+                showingLeaveConfirm = true
+            }
+            Spacer()
             if let object = controller.roomState?.objectValue,
                let code = object["code"]?.stringValue {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .trailing, spacing: 2) {
                     MonoLabel("ROOM KEY")
                     HStack(spacing: 8) {
                         Text("房间密钥 \(code)")
@@ -54,7 +59,6 @@ struct RoomView: View {
                     }
                 }
             }
-            Spacer()
         }
     }
 }
@@ -62,6 +66,7 @@ struct RoomView: View {
 private struct RoomBody: View {
     @ObservedObject var controller: SessionController
     let object: [String: JSON]
+    @State private var confirmRemoveBot = false
 
     private var seats: [JSON] {
         object["seats"]?.arrayValue ?? []
@@ -96,8 +101,20 @@ private struct RoomBody: View {
                         controller.addBot()
                     }
                     if let botSeat = seats.compactMap({ $0.objectValue }).first(where: { $0["isBot"]?.boolValue == true })?["seat"]?.intValue {
-                        GhostButton(title: "移除 AI", systemImage: "person.badge.minus") {
-                            controller.removeBot(seat: Int(botSeat))
+                        GhostButton(
+                            title: confirmRemoveBot ? "再点一次确认" : "移除 AI",
+                            systemImage: "person.badge.minus"
+                        ) {
+                            if confirmRemoveBot {
+                                confirmRemoveBot = false
+                                controller.removeBot(seat: Int(botSeat))
+                            } else {
+                                confirmRemoveBot = true
+                                Task {
+                                    try? await Task.sleep(for: .seconds(2.5))
+                                    confirmRemoveBot = false
+                                }
+                            }
                         }
                     }
                 }
@@ -108,18 +125,22 @@ private struct RoomBody: View {
             // Ready / start
             HStack(spacing: 12) {
                 let ready = mySeat?["ready"]?.boolValue ?? false
-                PrimaryButton(title: ready ? "已准备（点此取消）" : "准备就绪") {
+                PrimaryButton(title: ready ? "已准备" : "准备就绪") {
                     controller.setReady(!ready)
                 }
                 if isHost {
-                    PrimaryButton(title: allReady ? "开始模拟" : "开始模拟（有人未准备）",
-                                  isLoading: false) {
-                        controller.startMatch()
+                    VStack(spacing: 6) {
+                        PrimaryButton(title: "开始模拟", isDisabled: !allReady) {
+                            controller.startMatch()
+                        }
+                        if !allReady {
+                            Text("还有队友未准备")
+                                .font(.footnote)
+                                .foregroundStyle(Theme.textSecondary)
+                        }
                     }
                 } else {
-                    Text("等待房主开始")
-                        .font(.footnote)
-                        .foregroundStyle(Theme.textSecondary)
+                    PrimaryButton(title: "等待房主开始", isDisabled: true) {}
                 }
             }
         }
@@ -141,8 +162,43 @@ private struct RoomBody: View {
                     .foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
-                MonoLabel(seat["playerId"]?.stringValue == myId ? "YOU"
-                            : (seat["playerId"]?.stringValue == hostId ? "HOST" : (isBot ? "CPU" : "SEAT 0\(index + 1)")))
+                HStack(spacing: 6) {
+                    MonoLabel("SEAT 0\(index + 1)")
+                    if isBot {
+                        MonoLabel("CPU")
+                    } else if seat["playerId"]?.stringValue == hostId
+                        && seat["playerId"]?.stringValue == myId {
+                        MonoLabel("HOST·YOU")
+                    } else if seat["playerId"]?.stringValue == hostId {
+                        MonoLabel("HOST")
+                    } else if seat["playerId"]?.stringValue == myId {
+                        MonoLabel("YOU")
+                    }
+                }
+                // 座位状态（copy.md 屏 3b）：已准备 / 待命中；自己的已准备座位
+                // 额外提供「点此取消准备」小签，点按回「待命中」。
+                if ready {
+                    HStack(spacing: 6) {
+                        Text("已准备")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(Theme.mint)
+                        if seat["playerId"]?.stringValue == myId {
+                            Button {
+                                controller.setReady(false)
+                            } label: {
+                                Text("点此取消准备")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(Theme.textSecondary)
+                                    .underline()
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                } else {
+                    Text("待命中")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Theme.textSecondary)
+                }
             } else {
                 Image(systemName: "plus")
                     .font(.system(size: 20))

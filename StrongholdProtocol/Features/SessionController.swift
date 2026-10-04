@@ -45,6 +45,13 @@ final class SessionController: ObservableObject {
     @Published var phase: ConnectionPhase = .idle
     @Published var roomState: JSON?
     @Published var toast: String?
+    /// True once the session has reached `connected` at least once this run;
+    /// a `.connecting` phase after that means an in-place reconnect.
+    @Published private(set) var hasConnected = false
+
+    var isReconnecting: Bool {
+        hasConnected && phase == .connecting
+    }
 
     let deployment: Deployment
     private let store = IdentityStore()
@@ -75,6 +82,7 @@ final class SessionController: ObservableObject {
                     self.phase = .connecting
                 case .connected(_, let resumed):
                     self.phase = .connected
+                    self.hasConnected = true
                     if let identity = self.session?.identity {
                         self.store.save(identity, for: self.deployment)
                     }
@@ -100,6 +108,7 @@ final class SessionController: ObservableObject {
         session = nil
         phase = .idle
         roomState = nil
+        hasConnected = false
     }
 
     var isConnected: Bool {

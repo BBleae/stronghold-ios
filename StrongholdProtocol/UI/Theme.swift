@@ -118,6 +118,7 @@ struct BracketFrame: View {
 struct PrimaryButton: View {
     let title: String
     var isLoading = false
+    var isDisabled = false
     let action: () -> Void
 
     var body: some View {
@@ -126,12 +127,13 @@ struct PrimaryButton: View {
                 if isLoading { ProgressView().tint(Theme.void) }
                 Text(title)
                     .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(Theme.void)
+                    .foregroundStyle(isDisabled ? Theme.textDisabled : Theme.void)
             }
             .frame(maxWidth: .infinity)
             .frame(minHeight: 44)
-            .background(Theme.mint)
+            .background(isDisabled ? Theme.textDisabled.opacity(0.3) : Theme.mint)
         }
+        .disabled(isDisabled)
         .accessibilityIdentifier("primary-button")
     }
 }
@@ -140,6 +142,7 @@ struct PrimaryButton: View {
 struct GhostButton: View {
     let title: String
     var systemImage: String?
+    var isDisabled = false
     let action: () -> Void
 
     var body: some View {
@@ -151,10 +154,33 @@ struct GhostButton: View {
                 Text(title)
             }
             .font(.system(size: 15, weight: .medium))
-            .foregroundStyle(Theme.mint)
+            .foregroundStyle(isDisabled ? Theme.textDisabled : Theme.mint)
             .padding(.horizontal, 14)
             .frame(minHeight: 44)
-            .overlay(Rectangle().strokeBorder(Theme.mintDim, lineWidth: 1))
+            .background(isDisabled ? Theme.textDisabled.opacity(0.3) : Color.clear)
+            .overlay(Rectangle().strokeBorder(
+                isDisabled ? Theme.textDisabled.opacity(0.3) : Theme.mintDim,
+                lineWidth: 1
+            ))
+        }
+        .disabled(isDisabled)
+    }
+}
+
+/// DangerGhostButton — 1px danger border + danger text, square corners
+/// （不可逆操作：离开同盟 / 放弃模拟）。
+struct DangerGhostButton: View {
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(Theme.danger)
+                .padding(.horizontal, 14)
+                .frame(minHeight: 44)
+                .overlay(Rectangle().strokeBorder(Theme.danger, lineWidth: 1))
         }
     }
 }
@@ -223,5 +249,27 @@ struct StatusChip: View {
             .padding(.vertical, 3)
             .overlay(Rectangle().strokeBorder(color.opacity(0.6), lineWidth: 1))
             .foregroundStyle(color)
+    }
+}
+
+/// 断线重连横幅 — shown at the top of in-session screens while the
+/// session is reconnecting with backoff.
+struct ReconnectBanner: View {
+    var body: some View {
+        HStack(spacing: 8) {
+            ProgressView()
+                .controlSize(.small)
+                .tint(Theme.warnAmber)
+            Text("连接已断开，正在重连…")
+                .font(.footnote)
+                .foregroundStyle(Theme.warnAmber)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .background(Theme.raised)
+        .overlay(Rectangle().strokeBorder(Theme.warnAmber.opacity(0.6), lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .padding(.top, 4)
+        .accessibilityIdentifier("reconnect-banner")
     }
 }
