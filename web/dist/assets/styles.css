@@ -1,0 +1,181 @@
+/* 卫戍协议（Stronghold Protocol）官网样式
+   视觉语言沿用原项目 theme.css 的 token：近黑绿灰底、薄荷绿强调、等宽英文标签、括角边框。 */
+:root {
+  --bg-0: #0B100D;
+  --bg-1: #161D18;
+  --line: #2E4A3E;
+  --text-hi: #F2F7F4;
+  --text-md: #93A69C;
+  --text-lo: #93A69C;
+  --text-dim: #5A6A61;
+  --mint: #5CE8AF;
+  --mint-400: #7FF0C4;
+  --mint-a10: rgba(92, 232, 175, .08);
+  --on-mint: #0B100D;
+  --font-cjk: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--bg-0); color-scheme: dark; -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg-0);
+  color: var(--text-md);
+  font-family: var(--font-cjk);
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100svh;
+}
+
+.wrap {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 4.5rem 1.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+main { flex: 1; }
+
+/* 等宽英文小标签（对齐原站 .micro） */
+.micro {
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--mint);
+  margin: 0 0 .9rem;
+}
+
+/* 括角边框：原站的视觉签名，只用在主标题块（与联系面板） */
+.frame {
+  position: relative;
+  padding: 1.6rem 1.4rem;
+}
+.frame::before, .frame::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 0 solid var(--mint);
+}
+.frame::before { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
+.frame::after { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
+
+.slogan {
+  margin: 0 0 .7rem;
+  font-size: .95rem;
+  letter-spacing: .35em;
+  color: var(--text-lo);
+}
+
+h1 {
+  margin: 0;
+  color: var(--text-hi);
+  font-size: clamp(1.9rem, 6vw, 2.8rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: .01em;
+}
+
+.lead {
+  margin: 1.1rem 0 0;
+  max-width: 60ch;
+  color: var(--text-md);
+}
+
+h2 {
+  margin: 3.5rem 0 1.1rem;
+  color: var(--text-hi);
+  font-size: 1.3rem;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+/* 亮点卡片 */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: .9rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.cards h3 {
+  margin: 0 0 .35rem;
+  color: var(--text-hi);
+  font-size: 1.02rem;
+  font-weight: 650;
+}
+.cards p { margin: 0; font-size: .95rem; color: var(--text-lo); }
+.cards li {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  padding: 1.05rem 1.15rem;
+}
+
+/* 获取方式 */
+.get {
+  margin-top: 3.5rem;
+  padding: 1.4rem 1.4rem;
+  background: var(--mint-a10);
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--mint);
+}
+.get p { margin: 0; max-width: 60ch; }
+
+/* 支持页 / 隐私页 */
+.panel {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  padding: 1.3rem 1.4rem;
+  margin-top: 1.6rem;
+  max-width: 64ch;
+}
+.panel .big {
+  display: block;
+  color: var(--text-hi);
+  font-size: 1.05rem;
+  font-weight: 650;
+  margin-bottom: .4rem;
+}
+.panel p { margin: .2rem 0; }
+
+.faq { max-width: 64ch; padding: 0; margin: 0; list-style: none; }
+.faq li { margin: 0 0 1.15rem; }
+.faq .q {
+  display: block;
+  color: var(--text-hi);
+  font-weight: 650;
+  margin-bottom: .25rem;
+}
+.faq .q::before { content: "— "; color: var(--mint); }
+.faq p { margin: 0; }
+
+.page h2 { margin-top: 2.6rem; }
+.page .contact-line { margin-top: 2.6rem; color: var(--text-lo); font-size: .95rem; }
+
+a { color: var(--mint-400); text-decoration: none; border-bottom: 1px solid var(--mint); }
+a:hover { color: var(--text-hi); border-bottom-color: var(--text-hi); }
+a:focus-visible { outline: 2px solid var(--mint-400); outline-offset: 2px; border-bottom-color: transparent; }
+
+footer {
+  margin-top: 4rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1.2rem;
+  color: var(--text-lo);
+  font-size: .85rem;
+  line-height: 1.7;
+}
+footer nav { display: inline; }
+footer a { color: var(--text-lo); border-bottom-color: var(--line); }
+footer a:hover, footer a:focus-visible { color: var(--mint-400); border-bottom-color: var(--mint); }
+
+@media (max-width: 640px) {
+  .wrap { padding: 3.2rem 1.15rem 2.4rem; }
+  .frame { padding: 1.3rem 1rem; }
+  body { font-size: 16px; }
+}
