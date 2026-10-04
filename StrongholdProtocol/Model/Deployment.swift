@@ -83,7 +83,10 @@ struct Deployment: Identifiable, Equatable, Hashable, Codable {
 }
 
 /// Persisted list of deployments, stored locally in the app sandbox.
+@MainActor
 final class DeploymentStore: ObservableObject {
+    static let shared = DeploymentStore()
+
     @Published private(set) var deployments: [Deployment] = []
 
     private static let storageKey = "deployments.v1"

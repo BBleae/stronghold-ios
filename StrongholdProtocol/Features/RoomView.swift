@@ -18,6 +18,7 @@ struct RoomView: View {
         }
         .padding(16)
         .background(Theme.void)
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -36,17 +37,22 @@ struct RoomView: View {
         HStack(spacing: 12) {
             if let object = controller.roomState?.objectValue,
                let code = object["code"]?.stringValue {
-                Text("房间密钥 \(code)")
-                    .font(.system(size: 22, weight: .bold, design: .monospaced))
-                    .tracking(4)
-                    .foregroundStyle(Theme.mint)
-                Button {
-                    UIPasteboard.general.string = code
-                } label: {
-                    Image(systemName: "doc.on.doc")
-                        .foregroundStyle(Theme.textSecondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    MonoLabel("ROOM KEY")
+                    HStack(spacing: 8) {
+                        Text("房间密钥 \(code)")
+                            .font(.system(size: 22, weight: .bold, design: .monospaced))
+                            .tracking(4)
+                            .foregroundStyle(Theme.mint)
+                        Button {
+                            UIPasteboard.general.string = code
+                        } label: {
+                            Image(systemName: "doc.on.doc")
+                                .foregroundStyle(Theme.textSecondary)
+                        }
+                        .accessibilityLabel("复制房间密钥")
+                    }
                 }
-                .accessibilityLabel("复制房间密钥")
             }
             Spacer()
         }
@@ -132,6 +138,7 @@ private struct RoomBody: View {
                     .foregroundStyle(ready ? Theme.mint : (connected ? Theme.textPrimary : Theme.warnAmber))
                 Text(seat["name"]?.stringValue ?? "")
                     .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
                 MonoLabel(seat["playerId"]?.stringValue == myId ? "YOU"

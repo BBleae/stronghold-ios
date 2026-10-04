@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- 局域网/本地部署走明文 HTTP（自托管服务器无 TLS）。App Store 允许 NSAllowsLocalNetworking。 -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<!-- Deep link: stronghold://add?url=<deployment-url>&label=<optional label>
+	     lets a deployment be registered without typing it by hand. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.qingmao.stronghold</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>stronghold</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

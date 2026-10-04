@@ -33,6 +33,7 @@ struct LobbyView: View {
         .background(Theme.void)
         .navigationTitle("选择模拟协议")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .navigationDestination(isPresented: $showRoom) {
             RoomView(controller: controller)
         }
@@ -73,9 +74,10 @@ struct LobbyView: View {
                     .font(.footnote)
                     .foregroundStyle(Theme.danger)
             }
-            TextField("输入你的昵称", text: $nickname)
+            TextField("输入你的昵称", text: $nickname, prompt: Text("输入你的昵称").foregroundStyle(Theme.textDisabled))
                 .textFieldStyle(.plain)
                 .font(.system(size: 15))
+                .foregroundStyle(Theme.textPrimary)
                 .padding(10)
                 .background(Theme.base)
                 .overlay(Rectangle().strokeBorder(Theme.mintDim, lineWidth: 1))
@@ -96,13 +98,14 @@ struct LobbyView: View {
         VStack(spacing: 12) {
             TacPanel(tag: "SIMULATION MODE", title: "模拟方式") {
                 HStack(spacing: 12) {
-                    modeCard(title: "独立模拟", systemImage: "person.fill", selected: mode == "solo")
+                    modeCard(title: "独立模拟", tag: "SOLO", systemImage: "person.fill", selected: mode == "solo")
                         .onTapGesture { mode = "solo" }
                         .accessibilityIdentifier("mode-solo")
-                    modeCard(title: "同盟模拟", systemImage: "person.2.fill", selected: mode == "coop")
+                    modeCard(title: "同盟模拟", tag: "CO-OP", systemImage: "person.2.fill", selected: mode == "coop")
                         .onTapGesture { mode = "coop" }
                         .accessibilityIdentifier("mode-coop")
                 }
+                .padding(.top, 2)
             }
             TacPanel(tag: "DIFFICULTY", title: "模拟难度") {
                 HStack(spacing: 8) {
@@ -110,23 +113,41 @@ struct LobbyView: View {
                         Button {
                             difficulty = option
                         } label: {
-                            Text(option.label)
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundStyle(difficulty == option ? Theme.void : Theme.textPrimary)
-                                .frame(maxWidth: .infinity)
-                                .frame(minHeight: 40)
-                                .background(difficulty == option ? Theme.amber : Theme.base)
-                                .overlay(Rectangle().strokeBorder(difficulty == option ? Theme.amber : Theme.mintDim, lineWidth: 1))
+                            HStack(spacing: 6) {
+                                if difficulty == option {
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 12, weight: .bold))
+                                }
+                                Text(option.label)
+                                    .font(.system(size: 15, weight: .semibold))
+                            }
+                            .foregroundStyle(difficulty == option ? Theme.amber : Theme.textPrimary)
+                            .frame(maxWidth: .infinity)
+                            .frame(minHeight: 40)
+                            .background(difficulty == option ? Theme.amber.opacity(0.12) : Theme.base)
+                            .overlay(
+                                Rectangle().strokeBorder(
+                                    difficulty == option ? Theme.amber : Theme.mintDim,
+                                    lineWidth: difficulty == option ? 1.5 : 1
+                                )
+                            )
+                            .overlay {
+                                if difficulty == option {
+                                    BracketFrame(color: Theme.amber).padding(3)
+                                }
+                            }
                         }
+                        .buttonStyle(.plain)
                     }
                 }
             }
             if mode == "coop" {
                 TacPanel(tag: "ALLIANCE KEY", title: "加入同盟") {
                     HStack(spacing: 8) {
-                        TextField("输入 4 位房间密钥", text: $roomKey)
+                        TextField("输入 4 位房间密钥", text: $roomKey, prompt: Text("输入 4 位房间密钥").foregroundStyle(Theme.textDisabled))
                             .textFieldStyle(.plain)
                             .font(.system(size: 20, weight: .bold, design: .monospaced))
+                            .foregroundStyle(Theme.mint)
                             .frame(minHeight: 40)
                             .padding(.horizontal, 10)
                             .background(Theme.base)
@@ -148,14 +169,24 @@ struct LobbyView: View {
         .frame(maxWidth: 720)
     }
 
-    private func modeCard(title: String, systemImage: String, selected: Bool) -> some View {
+    private func modeCard(title: String, tag: String, systemImage: String, selected: Bool) -> some View {
         VStack(spacing: 8) {
             Image(systemName: systemImage)
                 .font(.system(size: 28))
                 .foregroundStyle(selected ? Theme.mint : Theme.textSecondary)
+                .frame(minHeight: 34)
             Text(title)
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(Theme.textPrimary)
+            MonoLabel(tag)
+            if selected {
+                Text("已选定")
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .tracking(1.8)
+                    .foregroundStyle(Theme.mint)
+            } else {
+                MonoLabel(" ")
+            }
         }
         .frame(maxWidth: .infinity)
         .frame(minHeight: 88)
